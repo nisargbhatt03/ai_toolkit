@@ -3,6 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+  }
+}
+
 interface BannerAdProps {
   slotId?: string;
   label?: string;
@@ -30,17 +36,29 @@ export function BannerAd({
         const [entry] = entries;
         if (entry && entry.isIntersecting && !pushedRef.current) {
           const el = containerRef.current;
-          if (el && el.offsetWidth > 100) {
-            try {
-              if (typeof window !== "undefined") {
-                const adsbygoogle = (window as unknown as Record<string, unknown[]>).adsbygoogle || [];
-                adsbygoogle.push({});
-                (window as unknown as Record<string, unknown[]>).adsbygoogle = adsbygoogle;
-                pushedRef.current = true;
-              }
-            } catch (err) {
-              console.warn("[AdSense] push skipped:", err);
+          if (!el) return;
+
+          const ad = el.querySelector(".adsbygoogle") as HTMLElement;
+          if (!ad || ad.offsetWidth === 0) return;
+
+          try {
+            if (typeof window !== "undefined") {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  try {
+                    if (!pushedRef.current) {
+                      window.adsbygoogle = window.adsbygoogle || [];
+                      window.adsbygoogle.push({});
+                      pushedRef.current = true;
+                    }
+                  } catch (e) {
+                    console.error("AdSense push inner error:", e);
+                  }
+                });
+              });
             }
+          } catch (err) {
+            console.warn("[AdSense] push skipped:", err);
           }
         }
       },
@@ -58,7 +76,7 @@ export function BannerAd({
     <div
       ref={containerRef}
       className={cn("w-full my-4 flex flex-col items-center justify-center min-h-[90px] w-full overflow-hidden", className)}
-      style={{ width: "100%", overflow: "hidden" }}
+      style={{ display: "block", width: "100%", overflow: "hidden" }}
     >
       <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/50 mb-1">
         {label}
@@ -72,8 +90,6 @@ export function BannerAd({
             width: "100%",
             minWidth: "250px",
             minHeight: "90px",
-            backgroundColor: "transparent",
-            borderRadius: "1rem",
           }}
           data-ad-client={adClient}
           data-ad-slot={slotId}
