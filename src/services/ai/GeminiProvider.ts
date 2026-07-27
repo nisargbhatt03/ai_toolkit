@@ -48,65 +48,100 @@ export class GeminiProvider implements IAIProvider {
     try {
       const fullPrompt = getPromptForTool(request.slug, request.prompt);
 
-      // Determine model based on TOOL_MODELS map, with fallbacks for maximum resilience
       const preferredModel = TOOL_MODELS[request.slug] || "gemini-2.5-flash";
       const secondaryModel = preferredModel.includes("lite") ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
-      
-      const modelsToTry = [preferredModel, secondaryModel, "gemini-2.0-flash", "gemini-1.5-flash"];
+
+      const candidateModels = Array.from(new Set([preferredModel, secondaryModel, "gemini-1.5-flash", "gemini-2.0-flash"]));
+      const apiVersions = ["v1beta", "v1"];
+
       let lastError = "";
 
-      for (const modelName of modelsToTry) {
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      // Try candidate models across v1beta and v1 API versions
+      for (const apiVersion of apiVersions) {
+        for (const modelName of candidateModels) {
+          try {
+            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${apiKey}`;
 
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [{ text: fullPrompt }],
-                },
-              ],
-            }),
-          });
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [{ text: fullPrompt }],
+                  },
+                ],
+              }),
+            });
 
-          const data = await res.json();
+            const data = await res.json();
 
-          if (!res.ok) {
-            const apiError = data?.error?.message || `Gemini API returned status ${res.status}`;
-            
-            // If API key itself is invalid, return immediately
-            if (apiError.toLowerCase().includes("api_key_invalid") || apiError.toLowerCase().includes("invalid api key")) {
-              return {
-                success: false,
-                error: `Google Gemini API Error: ${apiError}`,
-              };
+            if (!res.ok) {
+              const apiError = data?.error?.message || `Gemini API returned status ${res.status}`;
+              if (
+                apiError.toLowerCase().includes("api_key_invalid") ||
+                apiError.toLowerCase().includes("invalid api key")
+              ) {
+                return {
+                  success: false,
+                  error: `Google Gemini API Error: ${apiError}. Please verify your GEMINI_API_KEY in .env.local.`,
+                };
+              }
+              lastError = apiError;
+              continue;
             }
 
-            lastError = apiError;
-            continue;
-          }
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-          if (text) {
-            return {
-              success: true,
-              result: text,
-              toolSlug: request.slug,
-            };
+            if (text) {
+              return {
+                success: true,
+                result: text,
+                toolSlug: request.slug,
+              };
+            }
+          } catch (err: unknown) {
+            lastError = err instanceof Error ? err.message : "Network error calling Gemini API.";
           }
-        } catch (err: unknown) {
-          lastError = err instanceof Error ? err.message : "Fetch network failure";
         }
+      }
+
+      // Dynamic fallback: List available models authorized for this key
+      try {
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const availableModels: string[] = (listData?.models || [])
+            .filter((m: { supportedGenerationMethods?: string[] }) =>
+              m.supportedGenerationMethods?.includes("generateContent")
+            )
+            .map((m: { name: string }) => m.name.replace("models/", ""));
+
+          for (const modelName of availableModels) {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+              const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) {
+                return { success: true, result: text, toolSlug: request.slug };
+              }
+            }
+          }
+        }
+      } catch (listErr) {
+        console.error("Dynamic model discovery error:", listErr);
       }
 
       return {
         success: false,
-        error: lastError || "Failed to generate AI response from Gemini.",
+        error: `Gemini API Error: ${lastError || "No supported model found for your API key."}`,
       };
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to process AI request.";
