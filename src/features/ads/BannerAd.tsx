@@ -38,28 +38,31 @@ export function BannerAd({
           const el = containerRef.current;
           if (!el) return;
 
-          const ad = el.querySelector(".adsbygoogle") as HTMLElement;
-          if (!ad || ad.offsetWidth === 0) return;
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (pushedRef.current || !containerRef.current) return;
+              const container = containerRef.current;
+              const ad = container.querySelector(".adsbygoogle") as HTMLElement;
 
-          try {
-            if (typeof window !== "undefined") {
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  try {
-                    if (!pushedRef.current) {
-                      window.adsbygoogle = window.adsbygoogle || [];
-                      window.adsbygoogle.push({});
-                      pushedRef.current = true;
-                    }
-                  } catch (e) {
-                    console.error("AdSense push inner error:", e);
+              // Ensure container and ad element are actually rendered with width > 100px
+              if (
+                container &&
+                container.clientWidth > 100 &&
+                ad &&
+                ad.clientWidth > 100
+              ) {
+                try {
+                  if (typeof window !== "undefined") {
+                    window.adsbygoogle = window.adsbygoogle || [];
+                    window.adsbygoogle.push({});
+                    pushedRef.current = true;
                   }
-                });
-              });
-            }
-          } catch (err) {
-            console.warn("[AdSense] push skipped:", err);
-          }
+                } catch {
+                  // Ignore harmless push timing warnings
+                }
+              }
+            });
+          });
         }
       },
       { threshold: 0.1 }
@@ -90,6 +93,8 @@ export function BannerAd({
             width: "100%",
             minWidth: "250px",
             minHeight: "90px",
+            backgroundColor: "transparent",
+            borderRadius: "1rem",
           }}
           data-ad-client={adClient}
           data-ad-slot={slotId}
