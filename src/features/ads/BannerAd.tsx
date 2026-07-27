@@ -12,80 +12,84 @@ interface BannerAdProps {
 
 export function BannerAd({
   slotId = "1234567890",
-  label = "Advertisement",
+  label = "Sponsored Content",
   className,
   adClient = "ca-pub-3029140435146977",
 }: BannerAdProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pushedRef = useRef(false);
 
+  // Check if slotId is numeric (valid AdSense unit ID) or placeholder string
+  const isNumericSlot = /^\d+$/.test(slotId);
+
   useEffect(() => {
-    const checkAndPushAd = () => {
-      if (pushedRef.current || !containerRef.current) return;
+    if (pushedRef.current || !containerRef.current || !isNumericSlot) return;
 
-      const container = containerRef.current;
-      const rect = container.getBoundingClientRect();
-      const style = window.getComputedStyle(container);
-
-      // Only push AdSense if element is visible and has a width > 0 (prevents availableWidth=0)
-      if (
-        style.display !== "none" &&
-        style.visibility !== "hidden" &&
-        rect.width > 50 &&
-        container.offsetWidth > 50
-      ) {
-        try {
-          if (typeof window !== "undefined") {
-            ((window as unknown as Record<string, unknown[]>).adsbygoogle =
-              (window as unknown as Record<string, unknown[]>).adsbygoogle || []).push({});
-            pushedRef.current = true;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry && entry.isIntersecting && !pushedRef.current) {
+          const el = containerRef.current;
+          if (el && el.offsetWidth > 100) {
+            try {
+              if (typeof window !== "undefined") {
+                const adsbygoogle = (window as unknown as Record<string, unknown[]>).adsbygoogle || [];
+                adsbygoogle.push({});
+                (window as unknown as Record<string, unknown[]>).adsbygoogle = adsbygoogle;
+                pushedRef.current = true;
+              }
+            } catch (err) {
+              console.warn("[AdSense] push skipped:", err);
+            }
           }
-        } catch (e) {
-          console.error("AdSense push error:", e);
         }
-      }
-    };
+      },
+      { threshold: 0.1 }
+    );
 
-    // Delay check slightly to ensure layout & media queries have evaluated
-    const timer = setTimeout(checkAndPushAd, 500);
-
-    // Also listen for resize events if initially hidden
-    const handleResize = () => {
-      if (!pushedRef.current) {
-        checkAndPushAd();
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
+    observer.observe(containerRef.current);
 
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
     };
-  }, []);
+  }, [isNumericSlot]);
 
   return (
     <div
       ref={containerRef}
-      className={cn("w-full my-4 flex flex-col items-center justify-center min-h-[90px]", className)}
+      className={cn("w-full my-4 flex flex-col items-center justify-center min-h-[90px] w-full overflow-hidden", className)}
       style={{ width: "100%", overflow: "hidden" }}
     >
-      <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60 mb-1">
+      <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/50 mb-1">
         {label}
       </span>
-      <ins
-        className="adsbygoogle"
-        style={{
-          display: "block",
-          width: "100%",
-          minWidth: "250px",
-          minHeight: "90px",
-        }}
-        data-ad-client={adClient}
-        data-ad-slot={slotId}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
+
+      {isNumericSlot ? (
+        <ins
+          className="adsbygoogle"
+          style={{
+            display: "block",
+            width: "100%",
+            minWidth: "250px",
+            minHeight: "90px",
+          }}
+          data-ad-client={adClient}
+          data-ad-slot={slotId}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      ) : (
+        /* Fallback placeholder when numerical AdSense Slot ID is pending */
+        <div className="w-full py-4 px-6 rounded-2xl border border-dashed border-primary/20 bg-primary/5 dark:bg-primary/10 flex items-center justify-between gap-3 my-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>AdSense Connected ({adClient})</span>
+          </div>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-mono">
+            Slot: {slotId}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
