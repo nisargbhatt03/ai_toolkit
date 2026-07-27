@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Zap, Clock, ShieldAlert, Sparkles } from "lucide-react";
+import { Zap, Clock, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface CreditStatusModalProps {
@@ -25,7 +25,7 @@ export function CreditStatusModal({ isOpen, onClose }: CreditStatusModalProps) {
           </span>
           <h3 className="text-2xl font-extrabold text-foreground">Out of Free Credits Today</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            You have used all <strong>3 free AI generations</strong> for today. Your 3 free credits will automatically reset tomorrow at midnight!
+            You have used all <strong>50 free AI generations</strong> for today. Your 50 free credits will automatically reset tomorrow at midnight!
           </p>
         </div>
 
@@ -33,7 +33,7 @@ export function CreditStatusModal({ isOpen, onClose }: CreditStatusModalProps) {
           <Clock className="w-6 h-6 text-primary shrink-0" />
           <div className="text-xs">
             <span className="font-semibold text-foreground block">Automatic Daily Reset</span>
-            <span className="text-muted-foreground">Come back tomorrow for 3 fresh generations. No payment required.</span>
+            <span className="text-muted-foreground">Come back tomorrow for 50 fresh generations. No payment required.</span>
           </div>
         </div>
 

@@ -6,8 +6,8 @@ import { CreditsState } from "@/types/credits";
 
 export function useCredits() {
   const [credits, setCredits] = useState<CreditsState>({
-    remainingCredits: 3,
-    maxDailyCredits: 3,
+    remainingCredits: 50,
+    maxDailyCredits: 50,
     lastResetDate: "",
   });
 

@@ -14,6 +14,7 @@ interface BannerAdProps {
   label?: string;
   className?: string;
   adClient?: string;
+  adMobUnitId?: string;
 }
 
 export function BannerAd({
@@ -21,6 +22,7 @@ export function BannerAd({
   label = "Sponsored Content",
   className,
   adClient = "ca-pub-3029140435146977",
+  adMobUnitId = "ca-app-pub-3029140435146977/4178361229",
 }: BannerAdProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pushedRef = useRef(false);
@@ -44,7 +46,6 @@ export function BannerAd({
               const container = containerRef.current;
               const ad = container.querySelector(".adsbygoogle") as HTMLElement;
 
-              // Ensure container and ad element are actually rendered with width > 100px
               if (
                 container &&
                 container.clientWidth > 100 &&
@@ -80,6 +81,7 @@ export function BannerAd({
       ref={containerRef}
       className={cn("w-full my-4 flex flex-col items-center justify-center min-h-[90px] w-full overflow-hidden", className)}
       style={{ display: "block", width: "100%", overflow: "hidden" }}
+      data-admob-unit-id={adMobUnitId}
     >
       <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/50 mb-1">
         {label}
@@ -102,11 +104,11 @@ export function BannerAd({
           data-full-width-responsive="true"
         />
       ) : (
-        /* Fallback placeholder when numerical AdSense Slot ID is pending */
+        /* Fallback placeholder when numerical AdSense/AdMob Slot ID is pending */
         <div className="w-full py-4 px-6 rounded-2xl border border-dashed border-primary/20 bg-primary/5 dark:bg-primary/10 flex items-center justify-between gap-3 my-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>AdSense Connected ({adClient})</span>
+            <span>AdMob Banner Connected ({adMobUnitId})</span>
           </div>
           <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-mono">
             Slot: {slotId}

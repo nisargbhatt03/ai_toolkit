@@ -29,7 +29,7 @@ export function UniversalAIScreen({ slug }: UniversalAIScreenProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [showCreditModal, setShowCreditModal] = useState(false);
 
-  const { remainingCredits, consumeCredit, refreshCredits } = useCredits();
+  const { remainingCredits, maxDailyCredits, consumeCredit, refreshCredits } = useCredits();
   const generateMutation = useAIGenerate();
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export function UniversalAIScreen({ slug }: UniversalAIScreenProps) {
           <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
             <span className="flex items-center gap-1.5 font-medium">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
-              {remainingCredits} / 3 Daily Credits Left
+              {remainingCredits} / {maxDailyCredits} Daily Credits Left
             </span>
 
             <span className={charCount >= maxCharLimit ? "text-destructive font-semibold" : ""}>
@@ -208,8 +208,8 @@ export function UniversalAIScreen({ slug }: UniversalAIScreenProps) {
         />
       )}
 
-      {/* Banner Ad Placeholder below result */}
-      <BannerAd slotId={`tool-result-${slug}`} label="Sponsored Content" />
+      {/* Banner Ad below result */}
+      <BannerAd slotId="1795474539" label="Sponsored Content" />
 
       {/* Out of Credits Modal */}
       <CreditStatusModal isOpen={showCreditModal} onClose={() => setShowCreditModal(false)} />

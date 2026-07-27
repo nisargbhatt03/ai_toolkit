@@ -6,8 +6,8 @@ export interface ICreditsService {
   hasAvailableCredits(): boolean;
 }
 
-const STORAGE_KEY = "ai_toolkit_credits_v1";
-const DEFAULT_MAX_CREDITS = 3;
+const STORAGE_KEY = "ai_toolkit_credits_v2";
+const DEFAULT_MAX_CREDITS = 50;
 
 export class LocalStorageCreditsService implements ICreditsService {
   private getTodayString(): string {
