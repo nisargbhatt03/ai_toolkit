@@ -5,9 +5,9 @@ import { BannerAd } from "@/features/ads/BannerAd";
 export function Footer() {
   return (
     <footer className="hidden sm:block w-full border-t border-border/40 bg-card/50 backdrop-blur-xs mt-16">
-      {/* Desktop Footer Banner Ad Placeholder */}
+      {/* Desktop Footer Banner Ad */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <BannerAd slotId="footer-banner-slot" label="Footer Advertisement" />
+        <BannerAd slotId="1795474539" label="Footer Advertisement" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">

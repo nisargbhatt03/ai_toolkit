@@ -72,6 +72,8 @@ export function BannerAd({
             width: "100%",
             minWidth: "250px",
             minHeight: "90px",
+            backgroundColor: "transparent",
+            borderRadius: "1rem",
           }}
           data-ad-client={adClient}
           data-ad-slot={slotId}
