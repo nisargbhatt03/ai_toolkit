@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description:
     "Free AI Chat, Content Writer, Grammar Checker, Text Rewriter, Summarizer, Translator, Email Writer, and Homework Helper. No login required.",
   manifest: "/manifest.json",
+  other: {
+    "google-adsense-account": "ca-pub-3029140435146977",
+  },
   robots: {
     index: true,
     follow: true,
@@ -45,6 +48,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-3029140435146977" />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-purple-500 selection:text-white bg-grid-pattern">
         <QueryProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>

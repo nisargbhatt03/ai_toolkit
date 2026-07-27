@@ -32,6 +32,21 @@ export const TOOL_MODELS: Record<string, string> = {
   name: "gemini-2.5-flash-lite",
 };
 
+function normalizeModelSlugs(rawName: string): string[] {
+  const formatted = rawName.trim().toLowerCase().replace(/\s+/g, "-");
+  const slugs: string[] = [formatted];
+
+  if (formatted.includes("lite")) {
+    slugs.push("gemini-2.5-flash-lite", "gemini-1.5-flash");
+  } else if (formatted.includes("gemma")) {
+    slugs.push("gemma-2-27b-it", "gemma-2-9b-it", "gemini-1.5-flash");
+  } else {
+    slugs.push("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash");
+  }
+
+  return Array.from(new Set(slugs));
+}
+
 export class GeminiProvider implements IAIProvider {
   public name = "Gemini";
 
@@ -48,19 +63,34 @@ export class GeminiProvider implements IAIProvider {
     try {
       const fullPrompt = getPromptForTool(request.slug, request.prompt);
 
-      const preferredModel = TOOL_MODELS[request.slug] || "gemini-2.5-flash";
+      const preferredModel = TOOL_MODELS[request.slug] || "gemini-2.5-flash-lite";
       const secondaryModel = preferredModel.includes("lite") ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
 
-      const candidateModels = Array.from(new Set([preferredModel, secondaryModel, "gemini-1.5-flash", "gemini-2.0-flash"]));
-      const apiVersions = ["v1beta", "v1"];
+      const userCandidates = [
+        preferredModel,
+        secondaryModel,
+        "Gemini 3 Flash",
+        "Gemini 3.5 Flash",
+        "Gemini 3.6 Flash",
+        "Gemma 4 26B",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+      ];
 
+      const candidateModels = Array.from(
+        new Set(userCandidates.flatMap((name) => normalizeModelSlugs(name)))
+      );
+
+      const apiVersions = ["v1beta", "v1"];
       let lastError = "";
 
       // Try candidate models across v1beta and v1 API versions
-      for (const apiVersion of apiVersions) {
-        for (const modelName of candidateModels) {
+      for (const modelName of candidateModels) {
+        for (const apiVersion of apiVersions) {
           try {
-            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${apiKey}`;
+            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${encodeURIComponent(modelName)}:generateContent?key=${apiKey}`;
 
             const res = await fetch(endpoint, {
               method: "POST",
@@ -120,7 +150,7 @@ export class GeminiProvider implements IAIProvider {
             .map((m: { name: string }) => m.name.replace("models/", ""));
 
           for (const modelName of availableModels) {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${apiKey}`;
             const res = await fetch(endpoint, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
