@@ -22,7 +22,7 @@ export default function HomePage() {
 
       {/* Banner Ad After Hero (Desktop Only) */}
       <div className="hidden sm:block">
-        <BannerAd slotId="after-hero-banner" label="Featured Sponsor" />
+        <BannerAd slotId="1795474539" label="Featured Sponsor" />
       </div>
 
       {/* 2-Column Grid for Android Mobile (with 4 Ads) & Multi-Column Grid for Desktop */}
@@ -42,7 +42,7 @@ export default function HomePage() {
 
       {/* Desktop Grid Footer Banner */}
       <div className="hidden sm:block">
-        <BannerAd slotId="after-grid-banner" label="Partner Advertisement" />
+        <BannerAd slotId="1795474539" label="Partner Advertisement" />
       </div>
     </div>
   );

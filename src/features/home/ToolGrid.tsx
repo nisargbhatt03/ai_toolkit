@@ -30,7 +30,7 @@ export function ToolGrid({ tools }: ToolGridProps) {
     <div className="w-full space-y-4">
       {/* Mobile Top Ad Banner (Ad 1 of 4) */}
       <div className="sm:hidden">
-        <BannerAd slotId="mobile-top-banner" label="Top Mobile Banner" className="my-2 py-3" />
+        <BannerAd slotId="1795474539" label="Top Mobile Banner" className="my-2 py-3" />
       </div>
 
       {/* Group 1: Tools 1-4 */}
@@ -49,7 +49,7 @@ export function ToolGrid({ tools }: ToolGridProps) {
 
       {/* Mobile In-Between Ad Banner 1 (Ad 2 of 4 - After 4th Tool) */}
       <div className="sm:hidden">
-        <BannerAd slotId="mobile-mid-banner-1" label="Sponsored Banner" className="my-2 py-3" />
+        <BannerAd slotId="1795474539" label="Sponsored Banner" className="my-2 py-3" />
       </div>
 
       {/* Group 2: Tools 5-8 */}
@@ -68,7 +68,7 @@ export function ToolGrid({ tools }: ToolGridProps) {
 
       {/* Mobile In-Between Ad Banner 2 (Ad 3 of 4 - After 8th Tool) */}
       <div className="sm:hidden">
-        <BannerAd slotId="mobile-mid-banner-2" label="Sponsored Banner" className="my-2 py-3" />
+        <BannerAd slotId="1795474539" label="Sponsored Banner" className="my-2 py-3" />
       </div>
 
       {/* Group 3: Tools 9-12 */}
@@ -87,7 +87,7 @@ export function ToolGrid({ tools }: ToolGridProps) {
 
       {/* Mobile Bottom Footer Ad Banner (Ad 4 of 4 - After 12th Tool) */}
       <div className="sm:hidden">
-        <BannerAd slotId="mobile-bottom-banner" label="Footer Banner" className="my-2 py-3" />
+        <BannerAd slotId="1795474539" label="Footer Banner" className="my-2 py-3" />
       </div>
     </div>
   );

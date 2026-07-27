@@ -11,7 +11,7 @@ interface BannerAdProps {
 }
 
 export function BannerAd({
-  slotId = "1234567890",
+  slotId = "1795474539",
   label = "Sponsored Content",
   className,
   adClient = "ca-pub-3029140435146977",
