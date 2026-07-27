@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const result = await aiService.generateContent({ slug, prompt });
 
-    const response = NextResponse.json(result, { status: result.success ? 200 : 500 });
+    const response = NextResponse.json(result, { status: 200 });
     
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("X-Frame-Options", "DENY");
@@ -44,8 +44,9 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err: unknown) {
     console.error("[API Error /api/ai/generate]:", err);
+    const msg = err instanceof Error ? err.message : "Internal server error processing AI generation request.";
     return NextResponse.json(
-      { success: false, error: "Internal server error processing AI generation request." },
+      { success: false, error: msg },
       { status: 500 }
     );
   }

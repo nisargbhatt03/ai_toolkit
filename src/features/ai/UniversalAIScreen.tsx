@@ -75,8 +75,8 @@ export function UniversalAIScreen({ slug }: UniversalAIScreenProps) {
       } else {
         setErrorMessage(response.error || "Failed to generate AI response. Please try again.");
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error connecting to AI service.";
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || "Error connecting to AI service.";
       setErrorMessage(msg);
     } finally {
       refreshCredits();

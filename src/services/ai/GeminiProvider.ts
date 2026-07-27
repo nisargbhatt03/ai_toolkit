@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { IAIProvider } from "./interfaces";
 import { AIGenerateRequest, AIGenerateResponse } from "@/types/ai";
 import { getPromptForTool } from "@/constants/prompts";
@@ -12,36 +11,62 @@ export class GeminiProvider implements IAIProvider {
     if (!apiKey) {
       return {
         success: false,
-        error: "GEMINI_API_KEY is not configured in server environment.",
+        error: "GEMINI_API_KEY is not configured in Vercel environment variables.",
       };
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = getPromptForTool(request.slug, request.prompt);
+      const fullPrompt = getPromptForTool(request.slug, request.prompt);
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
+      // Call Google Gemini REST API directly for maximum compatibility across serverless environments
+      const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+      let lastError = "";
 
-      const text = response.text || "";
+      for (const modelName of modelsToTry) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-      if (!text) {
-        return {
-          success: false,
-          error: "Empty response received from AI model.",
-        };
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [{ text: fullPrompt }],
+                },
+              ],
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            lastError = data?.error?.message || `Gemini API returned status ${res.status}`;
+            continue;
+          }
+
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (text) {
+            return {
+              success: true,
+              result: text,
+              toolSlug: request.slug,
+            };
+          }
+        } catch (err: unknown) {
+          lastError = err instanceof Error ? err.message : "Fetch network failure";
+        }
       }
 
       return {
-        success: true,
-        result: text,
-        toolSlug: request.slug,
+        success: false,
+        error: lastError || "Failed to generate AI response from Gemini.",
       };
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to generate AI response.";
-      console.error("[GeminiProvider Error]:", errorMessage);
+      const errorMessage = err instanceof Error ? err.message : "Failed to process AI request.";
       return {
         success: false,
         error: errorMessage,
